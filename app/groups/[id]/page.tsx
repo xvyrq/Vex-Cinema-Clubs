@@ -53,6 +53,11 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
   const settings = group.settings!
   const currentPicker = group.members[settings.currentPickerIndex]
 
+  // Debug logging
+  console.log('[Group Page] Group ID:', id)
+  console.log('[Group Page] Movies count:', group.movies.length)
+  console.log('[Group Page] Current movie:', currentMovie ? currentMovie.title : 'None')
+
   // Check if current user can select a movie
   const canSelectMovie = currentPicker?.userId === session.user.id
 
