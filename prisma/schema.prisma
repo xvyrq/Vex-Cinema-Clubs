@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js Models
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials auth
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  groupMembers  GroupMember[]
+  ratings       Rating[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Movie Club Models
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  joinCode    String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     GroupMember[]
+  settings    GroupSettings?
+  movies      Movie[]
+}
+
+enum MemberRole {
+  COMMISSIONER
+  MEMBER
+}
+
+model GroupMember {
+  id           String     @id @default(cuid())
+  userId       String
+  groupId      String
+  role         MemberRole @default(MEMBER)
+  rotationOrder Int
+  joinedAt     DateTime   @default(now())
+  isSkipped    Boolean    @default(false) // For skipping turns
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group        Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+}
+
+enum AnnouncementDay {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum MovieDuration {
+  WEEKLY      // 7 days
+  BIWEEKLY    // 14 days
+  MONTHLY     // 30 days
+}
+
+model GroupSettings {
+  id               String          @id @default(cuid())
+  groupId          String          @unique
+  announcementDay  AnnouncementDay @default(MONDAY)
+  movieDuration    MovieDuration   @default(WEEKLY)
+  currentPickerIndex Int           @default(0) // Index in rotation order
+  selectionWindowDays Int          @default(3) // Days before announcement for selection
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  group            Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+enum MovieStatus {
+  LOCKED          // Selected but not published yet
+  PUBLISHED       // Published and visible to all
+  RATING_PERIOD   // Published, members can rate
+  COMPLETED       // Rating period ended, ratings revealed
+}
+
+model Movie {
+  id                String      @id @default(cuid())
+  groupId           String
+  tmdbId            Int         // TMDB movie ID
+  title             String
+  posterPath        String?
+  backdropPath      String?
+  overview          String?     @db.Text
+  releaseDate       String?
+  voteAverage       Float?      // TMDB rating
+
+  // Movie club specific fields
+  selectedByUserId  String      // ID of user who selected it
+  selectedByName    String      // Name cached for display
+  lockedAt          DateTime?   // When it was locked in
+  publishedAt       DateTime?   // When it was published/announced
+  ratingRevealAt    DateTime?   // When ratings will be revealed
+  status            MovieStatus @default(LOCKED)
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  group             Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  ratings           Rating[]
+
+  @@index([groupId])
+  @@index([status])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  movieId   String
+  userId    String
+  rating    Float    // 0.5 to 5.0 (half stars allowed)
+  review    String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, userId])
+  @@index([movieId])
+}
