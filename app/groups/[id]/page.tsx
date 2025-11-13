@@ -31,7 +31,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       },
       movies: {
         orderBy: {
-          lockedAt: "desc",
+          createdAt: "desc",
         },
         take: 1,
       },
