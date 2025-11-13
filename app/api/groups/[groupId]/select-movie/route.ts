@@ -15,7 +15,7 @@ export async function POST(
 
     const { groupId } = await params
 
-    const { tmdbId, title, overview, posterPath, backdropPath, releaseDate, voteAverage } =
+    const { tmdbId, title, overview, posterPath, backdropPath, releaseDate, voteAverage, streamingProviders } =
       await request.json()
 
     // Check if user is a member of the group
@@ -86,6 +86,7 @@ export async function POST(
         backdropPath,
         releaseDate,
         voteAverage,
+        streamingProviders: streamingProviders || null,
         selectedByUserId: session.user.id,
         selectedByName: session.user.name || "Unknown",
         lockedAt: new Date(),

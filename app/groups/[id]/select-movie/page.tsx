@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,19 @@ interface Movie {
   vote_average: number
 }
 
+interface WatchProvider {
+  provider_id: number
+  provider_name: string
+  logo_path: string
+}
+
+interface WatchProviders {
+  link?: string
+  flatrate?: WatchProvider[]
+  rent?: WatchProvider[]
+  buy?: WatchProvider[]
+}
+
 export default function SelectMoviePage() {
   const router = useRouter()
   const params = useParams()
@@ -25,9 +38,31 @@ export default function SelectMoviePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Movie[]>([])
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
+  const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null)
   const [isSearching, setIsSearching] = useState(false)
   const [isLocking, setIsLocking] = useState(false)
   const [error, setError] = useState("")
+
+  // Fetch watch providers when a movie is selected
+  useEffect(() => {
+    if (selectedMovie) {
+      fetchWatchProviders(selectedMovie.id)
+    } else {
+      setWatchProviders(null)
+    }
+  }, [selectedMovie])
+
+  const fetchWatchProviders = async (movieId: number) => {
+    try {
+      const response = await fetch(`/api/tmdb/watch-providers/${movieId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setWatchProviders(data.providers)
+      }
+    } catch (error) {
+      console.error("Failed to fetch watch providers:", error)
+    }
+  }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,6 +110,7 @@ export default function SelectMoviePage() {
           backdropPath: selectedMovie.backdrop_path,
           releaseDate: selectedMovie.release_date,
           voteAverage: selectedMovie.vote_average,
+          streamingProviders: watchProviders,
         }),
       })
 
@@ -92,6 +128,10 @@ export default function SelectMoviePage() {
     } finally {
       setIsLocking(false)
     }
+  }
+
+  const getProviderLogoUrl = (path: string) => {
+    return `https://image.tmdb.org/t/p/w92${path}`
   }
 
   const getPosterUrl = (path: string | null) => {
@@ -160,6 +200,61 @@ export default function SelectMoviePage() {
                 <p className="text-sm mb-4 line-clamp-3">
                   {selectedMovie.overview}
                 </p>
+
+                {/* Watch Providers */}
+                {watchProviders && (
+                  <div className="mb-4 space-y-3">
+                    {watchProviders.flatrate && watchProviders.flatrate.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Stream</p>
+                        <div className="flex flex-wrap gap-2">
+                          {watchProviders.flatrate.map((provider) => (
+                            <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                              <img
+                                src={getProviderLogoUrl(provider.logo_path)}
+                                alt={provider.provider_name}
+                                className="w-8 h-8 rounded"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {watchProviders.rent && watchProviders.rent.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Rent</p>
+                        <div className="flex flex-wrap gap-2">
+                          {watchProviders.rent.map((provider) => (
+                            <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                              <img
+                                src={getProviderLogoUrl(provider.logo_path)}
+                                alt={provider.provider_name}
+                                className="w-8 h-8 rounded"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {watchProviders.buy && watchProviders.buy.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Buy</p>
+                        <div className="flex flex-wrap gap-2">
+                          {watchProviders.buy.map((provider) => (
+                            <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                              <img
+                                src={getProviderLogoUrl(provider.logo_path)}
+                                alt={provider.provider_name}
+                                className="w-8 h-8 rounded"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <Button onClick={handleLockMovie} disabled={isLocking}>
                     {isLocking ? "Locking..." : "Lock In This Movie"}
