@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { GroupSettings } from "@/components/groups/GroupSettings"
 import { MemberList } from "@/components/groups/MemberList"
+import { CopyButton } from "@/components/groups/CopyButton"
 
 export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -91,15 +92,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
                   <code className="flex-1 p-2 bg-muted rounded text-sm font-mono">
                     {group.joinCode}
                   </code>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      navigator.clipboard.writeText(group.joinCode)
-                    }}
-                  >
-                    Copy
-                  </Button>
+                  <CopyButton text={group.joinCode} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Share this code with friends to invite them to the group
