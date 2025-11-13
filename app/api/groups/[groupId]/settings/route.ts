@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,10 +13,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { groupId } = await params
+
     // Check if user is commissioner
     const membership = await prisma.groupMember.findFirst({
       where: {
-        groupId: params.groupId,
+        groupId,
         userId: session.user.id,
         role: "COMMISSIONER",
       },
@@ -33,7 +35,7 @@ export async function PATCH(
 
     const settings = await prisma.groupSettings.update({
       where: {
-        groupId: params.groupId,
+        groupId,
       },
       data: {
         announcementDay,

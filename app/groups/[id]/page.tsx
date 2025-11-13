@@ -7,15 +7,17 @@ import Link from "next/link"
 import { GroupSettings } from "@/components/groups/GroupSettings"
 import { MemberList } from "@/components/groups/MemberList"
 
-export default async function GroupPage({ params }: { params: { id: string } }) {
+export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
 
   if (!session?.user) {
     redirect("/auth/login")
   }
 
+  const { id } = await params
+
   const group = await prisma.group.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       settings: true,
       members: {

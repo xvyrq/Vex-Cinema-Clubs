@@ -10,7 +10,7 @@ import { RatingsList } from "@/components/movies/RatingsList"
 export default async function MovieDetailsPage({
   params,
 }: {
-  params: { id: string; movieId: string }
+  params: Promise<{ id: string; movieId: string }>
 }) {
   const session = await auth()
 
@@ -18,8 +18,10 @@ export default async function MovieDetailsPage({
     redirect("/auth/login")
   }
 
+  const { id, movieId } = await params
+
   const movie = await prisma.movie.findUnique({
-    where: { id: params.movieId },
+    where: { id: movieId },
     include: {
       group: {
         include: {
@@ -73,7 +75,7 @@ export default async function MovieDetailsPage({
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <Button variant="ghost" asChild>
-          <Link href={`/groups/${params.id}`}>← Back to Group</Link>
+          <Link href={`/groups/${id}`}>← Back to Group</Link>
         </Button>
       </div>
 
@@ -163,7 +165,7 @@ export default async function MovieDetailsPage({
           {canRate && (
             <RatingForm
               movieId={movie.id}
-              groupId={params.id}
+              groupId={id}
               existingRating={userRating}
             />
           )}

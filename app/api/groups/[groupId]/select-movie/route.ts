@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,13 +13,15 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { groupId } = await params
+
     const { tmdbId, title, overview, posterPath, backdropPath, releaseDate, voteAverage } =
       await request.json()
 
     // Check if user is a member of the group
     const membership = await prisma.groupMember.findFirst({
       where: {
-        groupId: params.groupId,
+        groupId,
         userId: session.user.id,
       },
     })
@@ -33,7 +35,7 @@ export async function POST(
 
     // Get group settings to verify it's this user's turn
     const group = await prisma.group.findUnique({
-      where: { id: params.groupId },
+      where: { id: groupId },
       include: {
         settings: true,
         members: {
@@ -59,7 +61,7 @@ export async function POST(
     // Check if there's already a locked or published movie for current period
     const existingMovie = await prisma.movie.findFirst({
       where: {
-        groupId: params.groupId,
+        groupId,
         status: {
           in: ["LOCKED", "PUBLISHED", "RATING_PERIOD"],
         },
@@ -76,7 +78,7 @@ export async function POST(
     // Create the movie selection
     const movie = await prisma.movie.create({
       data: {
-        groupId: params.groupId,
+        groupId,
         tmdbId,
         title,
         overview,

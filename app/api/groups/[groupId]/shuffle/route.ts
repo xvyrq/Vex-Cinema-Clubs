@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,10 +13,12 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { groupId } = await params
+
     // Check if user is commissioner
     const membership = await prisma.groupMember.findFirst({
       where: {
-        groupId: params.groupId,
+        groupId,
         userId: session.user.id,
         role: "COMMISSIONER",
       },
@@ -31,7 +33,7 @@ export async function POST(
 
     // Get all members
     const members = await prisma.groupMember.findMany({
-      where: { groupId: params.groupId },
+      where: { groupId },
     })
 
     // Shuffle array using Fisher-Yates algorithm
@@ -51,7 +53,7 @@ export async function POST(
 
     // Reset current picker index
     await prisma.groupSettings.update({
-      where: { groupId: params.groupId },
+      where: { groupId },
       data: { currentPickerIndex: 0 },
     })
 

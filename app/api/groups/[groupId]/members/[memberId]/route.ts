@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { groupId: string; memberId: string } }
+  { params }: { params: Promise<{ groupId: string; memberId: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,10 +13,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { groupId, memberId } = await params
+
     // Check if user is commissioner
     const membership = await prisma.groupMember.findFirst({
       where: {
-        groupId: params.groupId,
+        groupId,
         userId: session.user.id,
         role: "COMMISSIONER",
       },
@@ -31,7 +33,7 @@ export async function DELETE(
 
     // Don't allow removing self
     const memberToRemove = await prisma.groupMember.findUnique({
-      where: { id: params.memberId },
+      where: { id: memberId },
     })
 
     if (memberToRemove?.userId === session.user.id) {
@@ -43,12 +45,12 @@ export async function DELETE(
 
     // Remove member
     await prisma.groupMember.delete({
-      where: { id: params.memberId },
+      where: { id: memberId },
     })
 
     // Reorder remaining members
     const remainingMembers = await prisma.groupMember.findMany({
-      where: { groupId: params.groupId },
+      where: { groupId },
       orderBy: { rotationOrder: "asc" },
     })
 

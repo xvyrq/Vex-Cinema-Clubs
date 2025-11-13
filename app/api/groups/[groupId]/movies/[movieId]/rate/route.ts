@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { groupId: string; movieId: string } }
+  { params }: { params: Promise<{ groupId: string; movieId: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,6 +12,8 @@ export async function POST(
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { groupId, movieId } = await params
 
     const { rating, review } = await request.json()
 
@@ -26,7 +28,7 @@ export async function POST(
     // Check if user is a member of the group
     const membership = await prisma.groupMember.findFirst({
       where: {
-        groupId: params.groupId,
+        groupId,
         userId: session.user.id,
       },
     })
@@ -40,7 +42,7 @@ export async function POST(
 
     // Check if movie exists and is in rating period
     const movie = await prisma.movie.findUnique({
-      where: { id: params.movieId },
+      where: { id: movieId },
     })
 
     if (!movie) {
@@ -58,7 +60,7 @@ export async function POST(
     const userRating = await prisma.rating.upsert({
       where: {
         movieId_userId: {
-          movieId: params.movieId,
+          movieId,
           userId: session.user.id,
         },
       },
@@ -67,7 +69,7 @@ export async function POST(
         review,
       },
       create: {
-        movieId: params.movieId,
+        movieId,
         userId: session.user.id,
         rating,
         review,
@@ -86,7 +88,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { groupId: string; movieId: string } }
+  { params }: { params: Promise<{ groupId: string; movieId: string }> }
 ) {
   try {
     const session = await auth()
