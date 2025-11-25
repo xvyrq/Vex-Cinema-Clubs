@@ -18,9 +18,9 @@ interface Movie {
 }
 
 interface WatchProvider {
+  logo_path: string
   provider_id: number
   provider_name: string
-  logo_path: string
 }
 
 interface WatchProviders {
@@ -88,6 +88,26 @@ export default function SelectMoviePage() {
     } finally {
       setIsSearching(false)
     }
+  }
+
+  const fetchWatchProviders = async (movieId: number) => {
+    try {
+      const response = await fetch(
+        `/api/tmdb/watch-providers?movieId=${movieId}`
+      )
+      if (response.ok) {
+        const data = await response.json()
+        setWatchProviders(data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch watch providers:", error)
+    }
+  }
+
+  const handleSelectMovie = async (movie: Movie) => {
+    setSelectedMovie(movie)
+    setWatchProviders(null)
+    await fetchWatchProviders(movie.id)
   }
 
   const handleLockMovie = async () => {
@@ -203,55 +223,58 @@ export default function SelectMoviePage() {
 
                 {/* Watch Providers */}
                 {watchProviders && (
-                  <div className="mb-4 space-y-3">
-                    {watchProviders.flatrate && watchProviders.flatrate.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Stream</p>
-                        <div className="flex flex-wrap gap-2">
-                          {watchProviders.flatrate.map((provider) => (
-                            <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                  <div className="mb-4">
+                    <p className="text-sm font-medium mb-2">Where to Watch:</p>
+                    <div className="space-y-2">
+                      {watchProviders.flatrate && watchProviders.flatrate.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Stream:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {watchProviders.flatrate.map((provider) => (
                               <img
-                                src={getProviderLogoUrl(provider.logo_path)}
+                                key={provider.provider_id}
+                                src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
                                 alt={provider.provider_name}
-                                className="w-8 h-8 rounded"
+                                title={provider.provider_name}
+                                className="w-10 h-10 rounded"
                               />
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {watchProviders.rent && watchProviders.rent.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Rent</p>
-                        <div className="flex flex-wrap gap-2">
-                          {watchProviders.rent.map((provider) => (
-                            <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                      )}
+                      {watchProviders.rent && watchProviders.rent.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Rent:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {watchProviders.rent.map((provider) => (
                               <img
-                                src={getProviderLogoUrl(provider.logo_path)}
+                                key={provider.provider_id}
+                                src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
                                 alt={provider.provider_name}
-                                className="w-8 h-8 rounded"
+                                title={provider.provider_name}
+                                className="w-10 h-10 rounded"
                               />
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {watchProviders.buy && watchProviders.buy.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Buy</p>
-                        <div className="flex flex-wrap gap-2">
-                          {watchProviders.buy.map((provider) => (
-                            <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                      )}
+                      {watchProviders.buy && watchProviders.buy.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Buy:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {watchProviders.buy.map((provider) => (
                               <img
-                                src={getProviderLogoUrl(provider.logo_path)}
+                                key={provider.provider_id}
+                                src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
                                 alt={provider.provider_name}
-                                className="w-8 h-8 rounded"
+                                title={provider.provider_name}
+                                className="w-10 h-10 rounded"
                               />
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -279,7 +302,7 @@ export default function SelectMoviePage() {
             <Card
               key={movie.id}
               className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setSelectedMovie(movie)}
+              onClick={() => handleSelectMovie(movie)}
             >
               <CardContent className="p-4">
                 <div className="flex gap-3">

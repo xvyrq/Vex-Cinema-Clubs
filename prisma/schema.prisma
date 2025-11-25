@@ -142,7 +142,7 @@ model Movie {
   overview          String?     @db.Text
   releaseDate       String?
   voteAverage       Float?      // TMDB rating
-  streamingProviders Json?      // Watch providers (streaming/rent/buy options)
+  watchProviders    Json?       // Streaming/rental availability from TMDB
 
   // Movie club specific fields
   selectedByUserId  String      // ID of user who selected it

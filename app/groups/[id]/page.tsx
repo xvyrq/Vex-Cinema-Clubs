@@ -34,6 +34,11 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
           createdAt: "desc",
         },
         take: 1,
+        where: {
+          status: {
+            in: ["LOCKED", "PUBLISHED", "RATING_PERIOD", "COMPLETED"],
+          },
+        },
       },
     },
   })
@@ -126,18 +131,85 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
                 <CardTitle>Current Movie</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold">{currentMovie.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Selected by {currentMovie.selectedByName}
-                  </p>
-                  {currentMovie.overview && (
-                    <p className="text-sm mt-2">{currentMovie.overview}</p>
+                <div className="flex gap-4">
+                  {currentMovie.posterPath && (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w500${currentMovie.posterPath}`}
+                      alt={currentMovie.title}
+                      className="w-32 h-48 object-cover rounded"
+                    />
                   )}
-                  <div className="mt-4">
-                    <Link href={`/groups/${group.id}/movies/${currentMovie.id}`}>
-                      <Button>View Details</Button>
-                    </Link>
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-xl font-semibold">{currentMovie.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Selected by {currentMovie.selectedByName}
+                    </p>
+                    {currentMovie.overview && (
+                      <p className="text-sm mt-2">{currentMovie.overview}</p>
+                    )}
+
+                    {/* Watch Providers */}
+                    {currentMovie.watchProviders && typeof currentMovie.watchProviders === 'object' && (
+                      <div className="mt-3">
+                        <p className="text-sm font-medium mb-2">Where to Watch:</p>
+                        <div className="space-y-2">
+                          {(currentMovie.watchProviders as any).flatrate && (currentMovie.watchProviders as any).flatrate.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Stream:</p>
+                              <div className="flex gap-2 flex-wrap">
+                                {(currentMovie.watchProviders as any).flatrate.map((provider: any) => (
+                                  <img
+                                    key={provider.provider_id}
+                                    src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                                    alt={provider.provider_name}
+                                    title={provider.provider_name}
+                                    className="w-10 h-10 rounded"
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {(currentMovie.watchProviders as any).rent && (currentMovie.watchProviders as any).rent.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Rent:</p>
+                              <div className="flex gap-2 flex-wrap">
+                                {(currentMovie.watchProviders as any).rent.map((provider: any) => (
+                                  <img
+                                    key={provider.provider_id}
+                                    src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                                    alt={provider.provider_name}
+                                    title={provider.provider_name}
+                                    className="w-10 h-10 rounded"
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {(currentMovie.watchProviders as any).buy && (currentMovie.watchProviders as any).buy.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Buy:</p>
+                              <div className="flex gap-2 flex-wrap">
+                                {(currentMovie.watchProviders as any).buy.map((provider: any) => (
+                                  <img
+                                    key={provider.provider_id}
+                                    src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                                    alt={provider.provider_name}
+                                    title={provider.provider_name}
+                                    className="w-10 h-10 rounded"
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4">
+                      <Link href={`/groups/${group.id}/movies/${currentMovie.id}`}>
+                        <Button>View Details</Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </CardContent>
