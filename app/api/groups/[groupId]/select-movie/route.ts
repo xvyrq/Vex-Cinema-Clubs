@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { tmdb } from "@/lib/tmdb"
 
 export async function POST(
   request: NextRequest,
@@ -75,6 +76,9 @@ export async function POST(
       )
     }
 
+    // Fetch watch providers from TMDB
+    const watchProviders = await tmdb.getWatchProviders(tmdbId, "US")
+
     // Create the movie selection
     const movie = await prisma.movie.create({
       data: {
@@ -86,6 +90,7 @@ export async function POST(
         backdropPath,
         releaseDate,
         voteAverage,
+        watchProviders: watchProviders || undefined,
         selectedByUserId: session.user.id,
         selectedByName: session.user.name || "Unknown",
         lockedAt: new Date(),
