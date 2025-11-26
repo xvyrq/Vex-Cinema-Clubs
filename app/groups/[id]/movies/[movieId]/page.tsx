@@ -71,6 +71,17 @@ export default async function MovieDetailsPage({
     return `https://image.tmdb.org/t/p/original${path}`
   }
 
+  const getProviderLogoUrl = (path: string) => {
+    return `https://image.tmdb.org/t/p/w92${path}`
+  }
+
+  // Parse watch providers from JSON
+  const watchProviders = movie.watchProviders
+    ? (typeof movie.watchProviders === 'string'
+        ? JSON.parse(movie.watchProviders)
+        : movie.watchProviders)
+    : null
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
@@ -137,6 +148,61 @@ export default async function MovieDetailsPage({
                 <div>
                   <h3 className="font-semibold mb-2">Overview</h3>
                   <p className="text-sm text-muted-foreground">{movie.overview}</p>
+                </div>
+              )}
+
+              {/* Watch Providers */}
+              {watchProviders && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold mb-2">Where to Watch</h3>
+                  {watchProviders.flatrate && watchProviders.flatrate.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Stream</p>
+                      <div className="flex flex-wrap gap-2">
+                        {watchProviders.flatrate.map((provider: any) => (
+                          <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                            <img
+                              src={getProviderLogoUrl(provider.logo_path)}
+                              alt={provider.provider_name}
+                              className="w-10 h-10 rounded"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {watchProviders.rent && watchProviders.rent.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Rent</p>
+                      <div className="flex flex-wrap gap-2">
+                        {watchProviders.rent.map((provider: any) => (
+                          <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                            <img
+                              src={getProviderLogoUrl(provider.logo_path)}
+                              alt={provider.provider_name}
+                              className="w-10 h-10 rounded"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {watchProviders.buy && watchProviders.buy.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Buy</p>
+                      <div className="flex flex-wrap gap-2">
+                        {watchProviders.buy.map((provider: any) => (
+                          <div key={provider.provider_id} className="flex items-center gap-1" title={provider.provider_name}>
+                            <img
+                              src={getProviderLogoUrl(provider.logo_path)}
+                              alt={provider.provider_name}
+                              className="w-10 h-10 rounded"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
