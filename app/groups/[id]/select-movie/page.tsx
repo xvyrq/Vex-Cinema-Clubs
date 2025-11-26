@@ -90,7 +90,7 @@ export default function SelectMoviePage() {
     }
   }
 
-  const fetchWatchProviders = async (movieId: number) => {
+  const loadWatchProviders = async (movieId: number) => {
     try {
       const response = await fetch(
         `/api/tmdb/watch-providers?movieId=${movieId}`
@@ -107,7 +107,7 @@ export default function SelectMoviePage() {
   const handleSelectMovie = async (movie: Movie) => {
     setSelectedMovie(movie)
     setWatchProviders(null)
-    await fetchWatchProviders(movie.id)
+    await loadWatchProviders(movie.id)
   }
 
   const handleLockMovie = async () => {
