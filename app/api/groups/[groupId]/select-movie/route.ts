@@ -90,7 +90,7 @@ export async function POST(
         backdropPath,
         releaseDate,
         voteAverage,
-        watchProviders: watchProviders || undefined,
+        watchProviders: watchProviders as any,
         selectedByUserId: session.user.id,
         selectedByName: session.user.name || "Unknown",
         lockedAt: new Date(),
