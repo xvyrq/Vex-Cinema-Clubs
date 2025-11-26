@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -42,6 +42,27 @@ export default function SelectMoviePage() {
   const [isSearching, setIsSearching] = useState(false)
   const [isLocking, setIsLocking] = useState(false)
   const [error, setError] = useState("")
+
+  // Fetch watch providers when a movie is selected
+  useEffect(() => {
+    if (selectedMovie) {
+      fetchWatchProviders(selectedMovie.id)
+    } else {
+      setWatchProviders(null)
+    }
+  }, [selectedMovie])
+
+  const fetchWatchProviders = async (movieId: number) => {
+    try {
+      const response = await fetch(`/api/tmdb/watch-providers/${movieId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setWatchProviders(data.providers)
+      }
+    } catch (error) {
+      console.error("Failed to fetch watch providers:", error)
+    }
+  }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,6 +130,7 @@ export default function SelectMoviePage() {
           backdropPath: selectedMovie.backdrop_path,
           releaseDate: selectedMovie.release_date,
           voteAverage: selectedMovie.vote_average,
+          streamingProviders: watchProviders,
         }),
       })
 
@@ -126,6 +148,10 @@ export default function SelectMoviePage() {
     } finally {
       setIsLocking(false)
     }
+  }
+
+  const getProviderLogoUrl = (path: string) => {
+    return `https://image.tmdb.org/t/p/w92${path}`
   }
 
   const getPosterUrl = (path: string | null) => {

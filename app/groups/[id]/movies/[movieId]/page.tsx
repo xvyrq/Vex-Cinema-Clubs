@@ -52,7 +52,7 @@ export default async function MovieDetailsPage({
   }
 
   const userRating = movie.ratings.find((r) => r.userId === session.user.id)
-  const canRate = movie.status === "PUBLISHED" || movie.status === "RATING_PERIOD"
+  const canRate = movie.status === "LOCKED" || movie.status === "PUBLISHED" || movie.status === "RATING_PERIOD"
   const ratingsRevealed = movie.status === "COMPLETED"
 
   // Calculate average rating if revealed

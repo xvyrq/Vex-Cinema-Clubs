@@ -16,7 +16,7 @@ export async function POST(
 
     const { groupId } = await params
 
-    const { tmdbId, title, overview, posterPath, backdropPath, releaseDate, voteAverage } =
+    const { tmdbId, title, overview, posterPath, backdropPath, releaseDate, voteAverage, streamingProviders } =
       await request.json()
 
     // Check if user is a member of the group
